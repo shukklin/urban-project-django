@@ -1,0 +1,8 @@
+gunicorn
+django
+psycopg2-binary
+Pillow
+djangorestframework
+djangorestframework-simplejwt
+requests
+django-extra-fields
