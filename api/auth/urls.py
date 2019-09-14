@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import (
 )
 
 urlpatterns = [
-    url(r'^sign-in/$', token_obtain_pair, name='obtain-token'),
+    url(r'^signin/$', token_obtain_pair, name='obtain-token'),
     url(r'^refresh/$', token_refresh, name='refresh-token'),
-    url(r'^sign-up/$', SignUp.as_view(), name='sign-up'),
+    url(r'^signup/$', SignUp.as_view(), name='sign-up'),
 ]

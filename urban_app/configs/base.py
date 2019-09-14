@@ -137,4 +137,3 @@ with open(os.path.join(BASE_DIR, 'keys/db_key.txt')) as f:
 
 with open(os.path.join(BASE_DIR, 'keys/secret_key.txt')) as f:
     SECRET_KEY = f.read().strip()
-

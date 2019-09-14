@@ -12,7 +12,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 SESSION_COOKIE_SECURE = True
 X_FRAME_OPTIONS = 'DENY'
-SECURE_HSTS_SECONDS = 3600 #https://docs.djangoproject.com/en/2.2/ref/middleware/#http-strict-transport-security
+SECURE_HSTS_SECONDS = 3600 # https://docs.djangoproject.com/en/2.2/ref/middleware/#http-strict-transport-security
 
 LOGGING = {
     'version': 1,

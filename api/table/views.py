@@ -5,9 +5,9 @@ from django.shortcuts import get_list_or_404, get_object_or_404
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from api.models import Photo, Record, User
-from ..serializers import UserRecordSerializer, UserSerializer, UserScoreSerializer, UsersScoresSerializer, \
-    PhotoSerializer, RecordSerializer
+from api.models import Photo, User, Object
+from .serializers import UserRecordSerializer, UserSerializer, UserScoreSerializer, UsersScoresSerializer, \
+    PhotoSerializer, LocationSerializer
 
 
 class UsersTreeView(ListAPIView):
@@ -16,7 +16,7 @@ class UsersTreeView(ListAPIView):
 
     def get_queryset(self):
         return get_list_or_404(
-            Record.objects.values('user__username', 'date_input'), tree_id=self.kwargs['pk'])
+            Object.objects.values('user__username', 'date_input'), tree_id=self.kwargs['pk'])
 
 
 class UserPhotosView(ListAPIView):
@@ -27,7 +27,7 @@ class UserPhotosView(ListAPIView):
 
 
 class UserTreesView(ListAPIView):
-    serializer_class = RecordSerializer
+    serializer_class = UserSerializer
 
     def get_queryset(self):
         return get_list_or_404(Record.objects.values(

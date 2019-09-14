@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
-from api.models import Tree, Photo, Record
+from api.table.models import Tree, Photo, Record
 from django.contrib.gis.geos import Point
 
 class BaseViewTest(APITestCase):

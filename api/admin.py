@@ -1,10 +1,7 @@
 from django.contrib import admin
-from .models import Tree, Photo, Record, User, CommonName, ScientificName, SiteType
+from api.models import Object, Photo, User, ObjectType
 
-admin.site.register(Tree)
+admin.site.register(Object)
 admin.site.register(Photo)
-admin.site.register(Record)
 admin.site.register(User)
-admin.site.register(CommonName)
-admin.site.register(ScientificName)
-admin.site.register(SiteType)
+admin.site.register(ObjectType)

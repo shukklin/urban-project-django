@@ -6,14 +6,14 @@ from rest_framework.generics import CreateAPIView, RetrieveAPIView, ListAPIView,
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-from api.models import Tree, Photo, Record
-from ..serializers import TreeSerializer, RecordSerializer, PhotoSerializer
+from api.table.constants import MAX_UPLOAD_PHOTOS
+from api.table.models import Object, Photo, Record
+from api.table.serializers import ObjectSerializer, RecordSerializer, PhotoSerializer
 
 
 class TreePhotosView(ListCreateAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     serializer_class = PhotoSerializer
-    MAX_UPLOAD_PHOTOS = 10
 
     def get_queryset(self):
         return get_list_or_404(Photo.objects.all(), tree_id=self.kwargs['pk'])
@@ -22,7 +22,7 @@ class TreePhotosView(ListCreateAPIView):
         list_images = request.FILES.getlist('url[]')
 
         # If current count photos more than in conf not accept
-        if len(list_images) > self.MAX_UPLOAD_PHOTOS:
+        if len(list_images) > MAX_UPLOAD_PHOTOS:
             return Response(status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
         if len(list_images) == 0:
@@ -68,7 +68,7 @@ class RecordsView(CreateAPIView):
 
 class TreesInRadiusView(ListAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    serializer_class = TreeSerializer
+    serializer_class = ObjectSerializer
 
     def get_queryset(self):
         z, lat, lng = float(self.kwargs['z']), float(self.kwargs['lat']), float(self.kwargs['lng'])
@@ -78,19 +78,19 @@ class TreesInRadiusView(ListAPIView):
         else:
             radius = 1000
 
-        return Tree.objects.filter(
+        return Object.objects.filter(
             location__distance_lt=(Point(lat, lng), Distance(km=radius)))
 
 
 class TreeView(CreateAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    serializer_class = TreeSerializer
+    serializer_class = ObjectSerializer
 
     def create(self, request, *args, **kwargs):
-        serializer = TreeSerializer(data=request.data)
+        serializer = ObjectSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         obj, created = serializer.save()
-        serialized_tree = TreeSerializer(obj)
+        serialized_tree = ObjectSerializer(obj)
 
         if not created:
             return Response(serialized_tree, status=status.HTTP_200_OK)
