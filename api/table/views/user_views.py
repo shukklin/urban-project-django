@@ -1,11 +1,9 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
-from django.shortcuts import get_object_or_404, get_list_or_404
-from api.table.serializers import UserSerializer
-from api.models import User
-from ..serializers import LocationSerializer, ObjectSerializer
-from django.contrib.gis.geos import Point
-from django.contrib.gis.measure import Distance
 from rest_framework.response import Response
+
+from api.models import User
+from api.table.serializers.models_serializers import UserSerializer
 
 
 class UserViewSet(viewsets.ViewSet):

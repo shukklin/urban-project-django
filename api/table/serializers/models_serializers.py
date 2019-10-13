@@ -1,7 +1,7 @@
 from drf_extra_fields.geo_fields import PointField
 from rest_framework import serializers
 
-from api.models import  Photo, User, Object
+from api.models import *
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -17,12 +17,24 @@ class UserSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 
-class LocationSerializer(serializers.ModelSerializer):
-    location = PointField()
-
+class ObjectTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Object
-        fields = ['id', 'location']
+        model = ObjectType
+
+
+class CorporationTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Corporation
+
+
+class ActivityTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Activity
+
+
+class SubObjectTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubObjectType
 
 
 class ObjectSerializer(serializers.ModelSerializer):
@@ -37,21 +49,6 @@ class ObjectSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return Object.objects.create(**validated_data)
 
-
-class UserScoreSerializer(serializers.Serializer):
-    common_name__name = serializers.StringRelatedField()
-    common_name__name_ru = serializers.StringRelatedField()
-    total_records = serializers.IntegerField()
-
-
-class UsersScoresSerializer(serializers.Serializer):
-    user__username = serializers.StringRelatedField()
-    total_records = serializers.IntegerField()
-
-
-class UserRecordSerializer(serializers.Serializer):
-    date_input = serializers.DateField()
-    user__username = serializers.StringRelatedField()
 
 class PhotoSerializer(serializers.ModelSerializer):
     class Meta:

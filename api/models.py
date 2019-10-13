@@ -32,11 +32,11 @@ class Activity(models.Model):
 
 
 class User(AbstractUser):
-    corporation = models.ForeignKey(Corporation, on_delete=models.CASCADE)
-    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
+    corporation = models.ForeignKey(Corporation, on_delete=models.PROTECT)
+    activity = models.ForeignKey(Activity, on_delete=models.PROTECT)
     experience = models.IntegerField()
     money = models.IntegerField()
-    photo = models.URLField(null=True)
+    avatar = models.ImageField(null=True)
 
     class Meta:
         db_table = 'users'
@@ -77,9 +77,9 @@ class Object(models.Model):
     timestamp = models.DateField(auto_created=True, auto_now=True)
     state = models.IntegerField()
     name = models.CharField(max_length=255)
-    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
-    type = models.ForeignKey(ObjectType, on_delete=models.CASCADE)
-    sub_type = models.ForeignKey(SubObjectType, on_delete=models.CASCADE)
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT)
+    type = models.ForeignKey(ObjectType, on_delete=models.PROTECT)
+    sub_type = models.ForeignKey(SubObjectType, on_delete=models.PROTECT)
 
     class Meta:
         db_table = 'objects'
@@ -90,8 +90,8 @@ class Object(models.Model):
 
 class Photo(models.Model):
     url = models.ImageField()
-    object = models.ForeignKey(Object, on_delete=models.CASCADE)
-    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
+    object = models.ForeignKey(Object, on_delete=models.PROTECT)
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT)
 
     class Meta:
         db_table = "photos"

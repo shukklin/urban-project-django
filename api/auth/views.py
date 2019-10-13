@@ -1,7 +1,7 @@
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny
 
-from api.table.serializers import UserSerializer
+from api.table.serializers.models_serializers import UserSerializer
 
 
 class SignUp(CreateAPIView):
