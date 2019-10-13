@@ -16,13 +16,13 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
 
+
 class LocationSerializer(serializers.ModelSerializer):
     location = PointField()
 
     class Meta:
         model = Object
         fields = ['id', 'location']
-        read_only_fields = ('user',)
 
 
 class ObjectSerializer(serializers.ModelSerializer):

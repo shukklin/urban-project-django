@@ -7,8 +7,8 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from api.table.constants import MAX_UPLOAD_PHOTOS
-from api.table.models import Object, Photo, Record
-from api.table.serializers import ObjectSerializer, RecordSerializer, PhotoSerializer
+from api.models import Object, Photo
+from api.table.serializers import ObjectSerializer, PhotoSerializer
 
 
 class TreePhotosView(ListCreateAPIView):
@@ -80,19 +80,3 @@ class TreesInRadiusView(ListAPIView):
 
         return Object.objects.filter(
             location__distance_lt=(Point(lat, lng), Distance(km=radius)))
-
-
-class TreeView(CreateAPIView):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    serializer_class = ObjectSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = ObjectSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        obj, created = serializer.save()
-        serialized_tree = ObjectSerializer(obj)
-
-        if not created:
-            return Response(serialized_tree, status=status.HTTP_200_OK)
-        else:
-            return Response(serialized_tree, status=status.HTTP_201_CREATED)
