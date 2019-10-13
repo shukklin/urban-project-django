@@ -2,7 +2,7 @@
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
-from api.table.constants import MAX_UPLOAD_PHOTOS
+from api.table.constants.object_constants import MAX_UPLOAD_PHOTOS
 from api.table.serializers.models_serializers import PhotoSerializer
 
 
