@@ -109,7 +109,7 @@ class Object(models.Model):
 
 class ObjectPhoto(models.Model):
     """
-    Фотографии
+    Фотографии объектов
     """
     url = models.ImageField()
     object = models.ForeignKey(Object, on_delete=models.PROTECT)
