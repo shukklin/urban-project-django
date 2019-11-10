@@ -5,3 +5,4 @@ public/images/
 .vscode
 urban_app/keys/
 **/migrations
+env/
