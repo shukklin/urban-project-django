@@ -32,10 +32,12 @@ class Activity(models.Model):
 
 
 class User(AbstractUser):
-    corporation = models.ForeignKey(Corporation, on_delete=models.PROTECT)
-    activity = models.ForeignKey(Activity, on_delete=models.PROTECT)
-    experience = models.IntegerField()
-    money = models.IntegerField()
+    """
+    Пользователь
+    """
+    corporation = models.ForeignKey(Corporation, null=True, on_delete=models.PROTECT)
+    experience = models.IntegerField(default=0)
+    money = models.IntegerField(default=0)
     avatar = models.ImageField(null=True)
 
     class Meta:
@@ -43,6 +45,20 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class UserActivity(models.Model):
+    """
+        Связь многие-ко-многим, так как пользователь при каждом входе может выбирать новую активность и это нужно отслеживать
+    """
+    activity = models.ForeignKey(Activity, on_delete=models.PROTECT)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+
+    class Meta:
+        db_table = 'user_activity'
+
+    def __str__(self):
+        return "{} - {}".format(self.activity.name, self.user.username)
 
 
 class SubObjectType(models.Model):
@@ -72,6 +88,9 @@ class ObjectType(models.Model):
 
 
 class Object(models.Model):
+    """
+    Городские объекты
+    """
     location = models.PointField()
     address = models.CharField(max_length=255)
     timestamp = models.DateField(auto_created=True, auto_now=True)
@@ -79,7 +98,7 @@ class Object(models.Model):
     name = models.CharField(max_length=255)
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT)
     type = models.ForeignKey(ObjectType, on_delete=models.PROTECT)
-    sub_type = models.ForeignKey(SubObjectType, on_delete=models.PROTECT)
+    sub_type = models.ForeignKey(SubObjectType, null=True, on_delete=models.PROTECT)
 
     class Meta:
         db_table = 'objects'
@@ -89,6 +108,9 @@ class Object(models.Model):
 
 
 class Photo(models.Model):
+    """
+    Фотографии
+    """
     url = models.ImageField()
     object = models.ForeignKey(Object, on_delete=models.PROTECT)
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT)

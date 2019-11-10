@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status
 from django.shortcuts import get_object_or_404
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 
 from api.models import Object
 from api.table.serializers.custom_serializers import LocationSerializer
@@ -8,22 +8,22 @@ from api.table.serializers.models_serializers import ObjectSerializer
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import Distance
 from rest_framework.response import Response
-
+import math
 
 class ObjectViewSet(viewsets.ViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (AllowAny,)
 
     def list(self, request):
         z, lat, lng = float(request.query_params['z']), float(request.query_params['lat']), float(
             request.query_params['lng'])
 
         if z > 0:
-            radius = 1000 / z
+            radius = math.floor(100 / z)
         else:
-            radius = 1000
+            return Response(status=400)
 
         queryset = Object.objects.filter(
-            location__distance_lt=(Point(lat, lng), Distance(km=radius)))
+            location__distance_lt=(Point(lng, lat), Distance(km=radius)))
 
         serializer = LocationSerializer(queryset, many=True)
         return Response(serializer.data)
