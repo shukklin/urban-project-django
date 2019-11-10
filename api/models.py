@@ -8,8 +8,8 @@ class Corporation(models.Model):
     Корпорации
     """
     name = models.CharField(max_length=255)
-    experience = models.IntegerField()
-    money = models.IntegerField()
+    experience = models.IntegerField(default=0)
+    money = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'corporations'
@@ -47,7 +47,7 @@ class User(AbstractUser):
         return self.username
 
 
-class UserActivity(models.Model):
+class UserActivityHistory(models.Model):
     """
         Связь многие-ко-многим, так как пользователь при каждом входе может выбирать новую активность и это нужно отслеживать
     """
@@ -107,7 +107,7 @@ class Object(models.Model):
         return "{} - {}".format(str(self.id), self.name)
 
 
-class Photo(models.Model):
+class ObjectPhoto(models.Model):
     """
     Фотографии
     """

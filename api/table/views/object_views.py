@@ -39,3 +39,12 @@ class ObjectViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, pk=None):
+        queryset = Object.objects.all()
+        object_item = get_object_or_404(queryset, pk=pk)
+
+        serializer = ObjectSerializer(object_item, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)

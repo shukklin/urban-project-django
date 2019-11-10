@@ -4,15 +4,21 @@ from rest_framework import serializers
 from api.models import *
 
 
+class AuthSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'password', 'experience',
-                  'money', 'corporation', 'activity', 'avatar')
-        extra_kwargs = {
-            'password':
-                {'write_only': True},
-        }
+        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'experience',
+                  'money', 'corporation', 'avatar')
+        read_only_fields = ('experience', 'money', 'username')
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
@@ -21,21 +27,33 @@ class UserSerializer(serializers.ModelSerializer):
 class ObjectTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ObjectType
+        fields = '__all__'
 
 
-class CorporationTypeSerializer(serializers.ModelSerializer):
+class CorporationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Corporation
+        fields = '__all__'
+        read_only_fields = ('experience', 'money')
 
 
-class ActivityTypeSerializer(serializers.ModelSerializer):
+class ActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Activity
+        fields = '__all__'
+
+
+class UserActivityHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserActivityHistory
+        fields = '__all__'
+        read_only_fields = ('user',)
 
 
 class SubObjectTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubObjectType
+        fields = '__all__'
 
 
 class ObjectSerializer(serializers.ModelSerializer):
@@ -51,10 +69,10 @@ class ObjectSerializer(serializers.ModelSerializer):
         return Object.objects.create(**validated_data)
 
 
-class PhotoSerializer(serializers.ModelSerializer):
+class ObjectPhotoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Photo
+        model = ObjectPhoto
         fields = '__all__'
 
     def create(self, validated_data):
-        return Photo.objects.create(**validated_data)
+        return ObjectPhoto.objects.create(**validated_data)
