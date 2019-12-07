@@ -7,7 +7,10 @@ from api.models import *
 class AuthSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'corporation', 'avatar')
+        extra_kwargs = {'password': {
+            'write_only': True
+        }}
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
@@ -27,6 +30,12 @@ class UserSerializer(serializers.ModelSerializer):
 class ObjectTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ObjectType
+        fields = '__all__'
+
+
+class MissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Mission
         fields = '__all__'
 
 

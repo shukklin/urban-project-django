@@ -87,6 +87,26 @@ class ObjectType(models.Model):
         return "{}".format(self.name)
 
 
+class Mission(models.Model):
+    """
+    Миссии
+    """
+    name = models.TextField(max_length=255)
+    activity = models.ForeignKey(Activity, on_delete=models.PROTECT)
+    experience = models.IntegerField()
+    money = models.IntegerField()
+    description = models.TextField(max_length=255)
+
+
+class MissionUser(models.Model):
+    """
+    Так как у миссии могут быть назначены многим пользователям
+    """
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    mission = models.ForeignKey(Mission, on_delete=models.PROTECT)
+    isDone = models.BooleanField(default=False)
+
+
 class Object(models.Model):
     """
     Городские объекты

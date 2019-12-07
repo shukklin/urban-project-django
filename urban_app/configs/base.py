@@ -127,8 +127,8 @@ with open(os.path.join(BASE_DIR, 'keys/db_key.txt')) as f:
     DATABASES = {
         'default': {
             'ENGINE': 'django.contrib.gis.db.backends.postgis',
-            'NAME': 'urbanproject',
-            'USER': 'urbanproject',
+            'NAME': 'urbanapp',
+            'USER': 'urbanapp',
             'PASSWORD': DB_KEY,
             'HOST': '127.0.0.1',
             'PORT': '5432',
