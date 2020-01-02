@@ -37,7 +37,7 @@ class ObjectViewSet(viewsets.ViewSet):
     def create(self, request):
         serializer = ObjectSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, pk=None):

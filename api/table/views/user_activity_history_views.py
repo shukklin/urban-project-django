@@ -1,8 +1,9 @@
 from django.shortcuts import get_list_or_404
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+
+from api.table.serializers.models_serializers import UserActivityHistorySerializer
 from ...models import UserActivityHistory
-from api.table.serializers.models_serializers import ActivitySerializer, UserActivityHistorySerializer
 
 
 class UserActivityHistoryViewSet(viewsets.ViewSet):

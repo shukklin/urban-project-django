@@ -59,10 +59,17 @@ class UserActivityHistorySerializer(serializers.ModelSerializer):
         read_only_fields = ('user',)
 
 
-class SubObjectTypeSerializer(serializers.ModelSerializer):
+class ObjectHistorySerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    object = serializers.StringRelatedField()
+
     class Meta:
-        model = SubObjectType
+        model = ObjectHistory
         fields = '__all__'
+        read_only_fields = ('user',)
+
+    def create(self, validated_data):
+        return ObjectHistory.objects.create(**validated_data)
 
 
 class ObjectSerializer(serializers.ModelSerializer):

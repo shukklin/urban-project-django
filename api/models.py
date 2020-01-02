@@ -61,19 +61,6 @@ class UserActivityHistory(models.Model):
         return "{} - {}".format(self.activity.name, self.user.username)
 
 
-class SubObjectType(models.Model):
-    """
-    Подтипы игровых объектов (хвойное, лиственное) и т.д.
-    """
-    name = models.CharField(max_length=255)
-
-    class Meta:
-        db_table = 'sub-object-types'
-
-    def __str__(self):
-        return "{}".format(self.name)
-
-
 class ObjectType(models.Model):
     """
     Типы игровых объектов (дерево, столб) и т.д.
@@ -113,18 +100,30 @@ class Object(models.Model):
     """
     location = models.PointField()
     address = models.CharField(max_length=255)
-    timestamp = models.DateField(auto_created=True, auto_now=True)
     state = models.IntegerField()
     name = models.CharField(max_length=255)
-    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT)
     type = models.ForeignKey(ObjectType, on_delete=models.PROTECT)
-    sub_type = models.ForeignKey(SubObjectType, null=True, on_delete=models.PROTECT)
 
     class Meta:
         db_table = 'objects'
 
     def __str__(self):
         return "{} - {}".format(str(self.id), self.name)
+
+
+class ObjectHistory(models.Model):
+    """
+    История городских объектов городские объекты
+    """
+    timestamp = models.DateField(auto_created=True, auto_now=True)
+    object = models.ForeignKey(Object, on_delete=models.PROTECT)
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT)
+
+    class Meta:
+        db_table = 'objectshistory'
+
+    def __str__(self):
+        return "{} - {}".format(str(self.id), self.object.name)
 
 
 class ObjectPhoto(models.Model):
