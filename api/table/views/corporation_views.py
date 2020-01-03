@@ -1,4 +1,4 @@
-from django.shortcuts import get_list_or_404
+from django.shortcuts import get_list_or_404, get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from api.table.serializers.models_serializers import CorporationSerializer
@@ -11,6 +11,12 @@ class CorporationViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def retrieve(self, request, pk=None):
+        queryset = Corporation.objects.all()
+        corporation = get_object_or_404(queryset, pk=pk)
+        serializer = CorporationSerializer(corporation)
+        return Response(serializer.data)
 
     def list(self, request):
         queryset = Corporation.objects.all()

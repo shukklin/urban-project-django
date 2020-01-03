@@ -18,7 +18,8 @@ class Corporation(models.Model):
     """
     Корпорации
     """
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
+    description = models.CharField(max_length=255)
     experience = models.IntegerField(default=0)
     money = models.IntegerField(default=0)
 
@@ -49,7 +50,7 @@ class Mission(models.Model):
     """
     Миссии
     """
-    name = models.TextField(max_length=255)
+    name = models.TextField(max_length=255, unique=True)
     activity = models.IntegerField(choices=EActivityStatus.choices)
     experience = models.IntegerField()
     money = models.IntegerField()
@@ -70,7 +71,7 @@ class Object(models.Model):
     """
     Городские объекты
     """
-    location = models.PointField()
+    location = models.PointField(unique=True)
     address = models.CharField(max_length=255)
     state = models.IntegerField(validators=[
             MaxValueValidator(100),

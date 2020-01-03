@@ -1,3 +1,4 @@
+from django.db.models import Sum
 from rest_framework import serializers
 
 from api.models import *
@@ -34,6 +35,19 @@ class MissionSerializer(serializers.ModelSerializer):
 
 
 class CorporationSerializer(serializers.ModelSerializer):
+    count_players = serializers.SerializerMethodField(read_only=True)
+    experience = serializers.SerializerMethodField(read_only=True)
+    money = serializers.SerializerMethodField(read_only=True)
+
+    def get_money(self, obj):
+        return User.objects.filter(corporation=obj).aggregate(Sum('money'))['money__sum']
+
+    def get_experience(self, obj):
+        return User.objects.filter(corporation=obj).aggregate(Sum('experience'))['experience__sum']
+
+    def get_count_players(self, obj):
+        return User.objects.filter(corporation=obj).count()
+
     class Meta:
         model = Corporation
         fields = '__all__'
