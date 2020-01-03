@@ -1,0 +1,7 @@
+from enum import IntEnum
+
+
+class EObjectType(IntEnum):
+    TREE = 0
+    LIGHT = 1
+    ADVERTISMENT = 3

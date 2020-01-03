@@ -2,8 +2,7 @@ from django.shortcuts import get_list_or_404
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from ...models import Mission
-from api.table.serializers.models_serializers import ActivitySerializer, UserActivityHistorySerializer, \
-    MissionSerializer
+from api.table.serializers.models_serializers import MissionSerializer
 
 
 class MissionViewSet(viewsets.ViewSet):
@@ -15,6 +14,7 @@ class MissionViewSet(viewsets.ViewSet):
 
     def list(self, request):
         queryset = Mission.objects.all()
+        # TODO need filter by user activity
         missions = get_list_or_404(queryset)
         serializer = MissionSerializer(missions, many=True)
         return Response(serializer.data)
