@@ -9,9 +9,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from api.models import Object, ObjectsUserManage
-from api.table.constants.object_constants import OBJECT_CAN_CREATE_IN_RADIUS_METERS
+from api.table.constants.object_constants import OBJECT_CAN_CREATE_IN_RADIUS_METERS, OBJECT_CAPTURE_STREAK_COUNT
+from api.table.helpers.ObjectHelper import ObjectHelper
 from api.table.serializers.custom_serializers import LocationSerializer
-from api.table.serializers.models_serializers import ObjectSerializer, ObjectUpdateSerializer, ObjectManageSerializer
+from api.table.serializers.models_serializers import ObjectUserManageSerializer
+from api.table.serializers.object_serializers import ObjectSerializer, ObjectUpdateSerializer, ObjectCaptureSerializer
 
 
 class ObjectViewSet(viewsets.ViewSet):
@@ -52,21 +54,18 @@ class ObjectViewSet(viewsets.ViewSet):
 
         current_dt = datetime.datetime.now(datetime.timezone.utc)
 
-        # locked_until = serialized_object.data['locked_manage_until']
-        #
-        # if locked_until > current_dt:
-        #     return Response(status=403, data='Object is locked until ' + str(locked_until))
+        locked_until = serialized_object.data['locked_manage_until']
+
+        if locked_until > current_dt:
+             return Response(status=403, data='Object is locked until ' + str(locked_until))
 
         if object_item.user == request.user:
             Object.objects.filter(pk=pk).update(timestamp=current_dt)
-        else:
 
-            last_manage_records = ObjectsUserManage.objects.order_by('-id').filter(timestamp__gt=object_item.timestamp, user=request.user)
+        elif ObjectHelper.can_not_object_be_managed(object_item, request.user):
+            return Response(status=403, data='You can not manage this object twice a day')
 
-            if len(last_manage_records) > 0 and current_dt < (last_manage_records[0].timestamp + datetime.timedelta(1)):
-                return Response(status=403, data='You can not manage this object twice a day')
-
-        serializer = ObjectManageSerializer(data=request.data)
+        serializer = ObjectUserManageSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         serializer.save(user=request.user, object_id=object_item.pk)
@@ -96,4 +95,17 @@ class ObjectViewSet(viewsets.ViewSet):
         serializer = ObjectUpdateSerializer(object_item, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def partial_update(self,request, pk=None):
+        queryset = Object.objects.all()
+        object_item = get_object_or_404(queryset, pk=pk)
+
+        if not ObjectHelper.can_object_be_captured(object_item, request.user):
+            return Response(status=403, data='You can not capture this object yet')
+
+        context = {'request': request}
+        serializer = ObjectCaptureSerializer(object_item, data=request.data, context=context)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
