@@ -1,7 +1,8 @@
 from drf_extra_fields.geo_fields import PointField
 from rest_framework import serializers
-
+import datetime
 from api.models import *
+from api.table.constants.object_constants import OBJECT_LOCKED_IN_DAYS
 
 
 class AuthSerializer(serializers.ModelSerializer):
@@ -59,27 +60,34 @@ class UserActivityHistorySerializer(serializers.ModelSerializer):
         read_only_fields = ('user',)
 
 
-class ObjectHistorySerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
-    object = serializers.StringRelatedField()
-
-    class Meta:
-        model = ObjectHistory
-        fields = '__all__'
-        read_only_fields = ('user',)
-
-    def create(self, validated_data):
-        return ObjectHistory.objects.create(**validated_data)
-
-
 class ObjectSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
+    manage_status = serializers.SerializerMethodField()
+    offensive_status = serializers.IntegerField()
+    user_corporation = serializers.CharField(source='user.corporation')
     location = PointField()
+    locked_until = serializers.SerializerMethodField()
+
+    def get_locked_until(self, obj):
+        return (obj.timestamp + (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(OBJECT_LOCKED_IN_DAYS)))
+
+    def get_manage_status(self, obj):
+        return (datetime.datetime.now(datetime.timezone.utc) - obj.timestamp).days
 
     class Meta:
         model = Object
         fields = '__all__'
-        read_only_fields = ('user',)
+        read_only_fields = ('id', 'user', 'user_corporation', 'manage_status', 'offensive_status')
+
+    def create(self, validated_data):
+        return Object.objects.create(**validated_data)
+
+
+class ObjectUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Object
+        fields = '__all__'
+        read_only_fields = ('location',)
 
     def create(self, validated_data):
         return Object.objects.create(**validated_data)

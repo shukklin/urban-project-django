@@ -91,7 +91,8 @@ class MissionUser(models.Model):
     """
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     mission = models.ForeignKey(Mission, on_delete=models.PROTECT)
-    isDone = models.BooleanField(default=False)
+    start_timestamp = models.DateTimeField()
+    end_timestamp = models.DateTimeField(null=True)
 
 
 class Object(models.Model):
@@ -103,28 +104,14 @@ class Object(models.Model):
     state = models.IntegerField()
     name = models.CharField(max_length=255)
     type = models.ForeignKey(ObjectType, on_delete=models.PROTECT)
+    timestamp = models.DateTimeField(auto_created=True, auto_now=True)
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT)
 
     class Meta:
         db_table = 'objects'
 
     def __str__(self):
         return "{} - {}".format(str(self.id), self.name)
-
-
-class ObjectHistory(models.Model):
-    """
-    История городских объектов городские объекты
-    """
-    timestamp = models.DateField(auto_created=True, auto_now=True)
-    object = models.ForeignKey(Object, on_delete=models.PROTECT)
-    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT)
-
-    class Meta:
-        db_table = 'objectshistory'
-
-    def __str__(self):
-        return "{} - {}".format(str(self.id), self.object.name)
-
 
 class ObjectPhoto(models.Model):
     """

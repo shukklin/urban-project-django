@@ -6,7 +6,11 @@ from api.models import Object
 
 class LocationSerializer(serializers.ModelSerializer):
     location = PointField()
+    in_property = serializers.SerializerMethodField()
 
     class Meta:
         model = Object
-        fields = ['id', 'location']
+        fields = ['id', 'location', 'in_property']
+
+    def get_in_property(self, obj):
+        return obj.user == self.context.get('request').user
