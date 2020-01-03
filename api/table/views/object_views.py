@@ -8,7 +8,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.models import Object, ObjectsUserManage
+from api.models import Object, ObjectsUserManage, EActivityStatus
 from api.table.constants.object_constants import OBJECT_CAN_CREATE_IN_RADIUS_METERS, OBJECT_CAPTURE_STREAK_COUNT
 from api.table.helpers.ObjectHelper import ObjectHelper
 from api.table.serializers.custom_serializers import LocationSerializer
@@ -41,6 +41,15 @@ class ObjectViewSet(viewsets.ViewSet):
         context = {'request': request}
         serializer = ObjectSerializer(object, context=context)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['POST'])
+    def activate(self, request, pk=None):
+        if request.user.activity != EActivityStatus.ADMIN:
+            return Response(status=403, data='You must enable ADMIN activity for this action')
+
+        Object.objects.filter(pk=pk).update(isActivated=True)
+
+        return Response(status=status.HTTP_200_OK, data='Object has been activated')
 
     @action(detail=True, methods=['POST'])
     def manage(self, request, pk=None):
@@ -91,10 +100,10 @@ class ObjectViewSet(viewsets.ViewSet):
     def update(self, request, pk=None):
         queryset = Object.objects.all()
         object_item = get_object_or_404(queryset, pk=pk)
-
-        serializer = ObjectUpdateSerializer(object_item, data=request.data)
+        context = {'request': request}
+        serializer = ObjectUpdateSerializer(object_item, data=request.data, context=context)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(isActivate=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def partial_update(self,request, pk=None):

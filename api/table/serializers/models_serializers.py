@@ -16,6 +16,7 @@ class AuthSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ('id', 'email', 'username', 'first_name', 'last_name', 'experience',
@@ -23,7 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ('experience', 'money', 'username', 'email')
 
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
+        return User.objects.create(**validated_data)
 
 
 class MissionSerializer(serializers.ModelSerializer):

@@ -1,18 +1,15 @@
-
 from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from api.table.enums.EnumHelper import get_enum_choices
 from urban_app.settings import AUTH_USER_MODEL
-from enum import IntEnum
 
 
-class EActivityStatus(IntEnum):
+class EActivityStatus(models.IntegerChoices):
     BUSINESS = 0
     ADMIN = 1
 
-class EObjectType(IntEnum):
+class EObjectType(models.IntegerChoices):
     TREE = 0
     LIGHT = 1
     ADVERTISMENT = 3
@@ -39,7 +36,7 @@ class User(AbstractUser):
     experience = models.IntegerField(default=0)
     money = models.IntegerField(default=0)
     avatar = models.ImageField(null=True)
-    activity = models.IntegerField(default=EActivityStatus.BUSINESS, choices=get_enum_choices(EActivityStatus))
+    activity = models.IntegerField(default=EActivityStatus.BUSINESS, choices=EActivityStatus.choices)
 
     class Meta:
         db_table = 'users'
@@ -53,7 +50,7 @@ class Mission(models.Model):
     Миссии
     """
     name = models.TextField(max_length=255)
-    activity = models.IntegerField(max_length=10, choices=get_enum_choices(EActivityStatus))
+    activity = models.IntegerField(choices=EActivityStatus.choices)
     experience = models.IntegerField()
     money = models.IntegerField()
     description = models.TextField(max_length=255)
@@ -80,9 +77,10 @@ class Object(models.Model):
             MinValueValidator(0)
         ])
     name = models.CharField(max_length=255)
-    type = models.IntegerField(max_length=10, choices=get_enum_choices(EObjectType))
+    type = models.IntegerField(choices=EObjectType.choices)
     timestamp = models.DateTimeField(auto_created=True, auto_now=True)
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT)
+    is_activated = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'objects'
