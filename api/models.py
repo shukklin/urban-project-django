@@ -20,8 +20,12 @@ class Corporation(models.Model):
     """
     name = models.CharField(max_length=255, unique=True)
     description = models.CharField(max_length=255)
-    experience = models.IntegerField(default=0)
-    money = models.IntegerField(default=0)
+    experience = models.IntegerField(default=0, validators=[
+            MinValueValidator(0)
+        ])
+    money = models.IntegerField(default=0, validators=[
+            MinValueValidator(0)
+        ])
 
     class Meta:
         db_table = 'corporations'
@@ -34,8 +38,12 @@ class User(AbstractUser):
     Пользователь
     """
     corporation = models.ForeignKey(Corporation, null=True, on_delete=models.PROTECT)
-    experience = models.IntegerField(default=0)
-    money = models.IntegerField(default=0)
+    experience = models.IntegerField(default=0, validators=[
+            MinValueValidator(0)
+        ])
+    money = models.IntegerField(default=0, validators=[
+            MinValueValidator(0)
+        ])
     avatar = models.ImageField(null=True)
     activity = models.IntegerField(default=EActivityStatus.BUSINESS, choices=EActivityStatus.choices)
 
@@ -50,11 +58,21 @@ class Mission(models.Model):
     """
     Миссии
     """
-    name = models.TextField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True)
     activity = models.IntegerField(choices=EActivityStatus.choices)
-    experience = models.IntegerField()
-    money = models.IntegerField()
-    description = models.TextField(max_length=255)
+    manage_count = models.IntegerField(validators=[
+            MinValueValidator(0)
+        ])
+    experience = models.IntegerField(validators=[
+            MinValueValidator(0)
+        ])
+    money = models.IntegerField(validators=[
+            MinValueValidator(0)
+        ])
+    description = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
 
 
 class MissionUser(models.Model):
@@ -64,7 +82,7 @@ class MissionUser(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     mission = models.ForeignKey(Mission, on_delete=models.PROTECT)
     start_timestamp = models.DateTimeField()
-    end_timestamp = models.DateTimeField()
+    end_timestamp = models.DateTimeField(null=True)
 
 
 class Object(models.Model):

@@ -2,6 +2,7 @@ from django.db.models import Sum
 from rest_framework import serializers
 
 from api.models import *
+from api.table.helpers.MissionHelper import MissionHelper
 
 
 class AuthSerializer(serializers.ModelSerializer):
@@ -29,10 +30,36 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MissionSerializer(serializers.ModelSerializer):
+    in_progress = serializers.SerializerMethodField(read_only=True)
+    is_finished = serializers.SerializerMethodField(read_only=True)
+
+    def get_in_progress(self, obj):
+        return MissionUser.objects.filter(user=self.context.get('request').user, start_timestamp__isnull=False, end_timestamp__isnull=True, mission=obj).exists()
+
+    def get_is_finished(self, obj):
+        return MissionUser.objects.filter(user=self.context.get('request').user, end_timestamp__isnull=False, mission=obj).exists()
+
     class Meta:
         model = Mission
         fields = '__all__'
 
+class MissionUserSerializer(serializers.ModelSerializer):
+    mission = serializers.StringRelatedField()
+    until_manage_done_count = serializers.SerializerMethodField(read_only=True)
+
+    def get_until_manage_done_count(self, obj):
+        if obj.mission.activity == EActivityStatus.BUSINESS:
+            return MissionHelper.get_manage_done_count(obj, self.context.get('request').user)
+        elif obj.mission.activity == EActivityStatus.ADMIN:
+            return MissionHelper.get_admin_manage_done_count(obj, self.context.get('request').user)
+
+    class Meta:
+        model = MissionUser
+        fields = '__all__'
+        read_only_fields = ('user', 'mission', 'start_timestamp', 'end_timestamp')
+
+    def create(self, validated_data):
+        return MissionUser.objects.create(**validated_data)
 
 class CorporationSerializer(serializers.ModelSerializer):
     count_players = serializers.SerializerMethodField(read_only=True)

@@ -65,14 +65,14 @@ class ObjectViewSet(viewsets.ViewSet):
 
         locked_until = serialized_object.data['locked_manage_until']
 
-        if locked_until > current_dt:
-             return Response(status=403, data='Object is locked until ' + str(locked_until))
+        # if locked_until > current_dt:
+        #     return Response(status=403, data='Object is locked until ' + str(locked_until))
+
+        if ObjectHelper.can_not_object_be_managed(object_item, request.user):
+            return Response(status=403, data='You can manage any object only once in a day')
 
         if object_item.user == request.user:
             Object.objects.filter(pk=pk).update(timestamp=current_dt)
-
-        elif ObjectHelper.can_not_object_be_managed(object_item, request.user):
-            return Response(status=403, data='You can not manage this object twice a day')
 
         serializer = ObjectUserManageSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -106,7 +106,7 @@ class ObjectViewSet(viewsets.ViewSet):
         serializer.save(isActivate=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def partial_update(self,request, pk=None):
+    def partial_update(self, request, pk=None):
         queryset = Object.objects.all()
         object_item = get_object_or_404(queryset, pk=pk)
 
