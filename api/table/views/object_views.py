@@ -3,6 +3,7 @@ import math
 
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import Distance
+from django.http import Http404
 from django.shortcuts import get_object_or_404, get_list_or_404
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -29,7 +30,7 @@ class ObjectViewSet(viewsets.ViewSet):
         else:
             return Response(status=400, data='Input parameters is not correct')
 
-        queryset = Object.objects.filter(
+        queryset = Object.objects.filter(is_deleted__exact=False,
             location__distance_lt=(Point(lng, lat), Distance(km=radius)))
 
         context = {'request': request}
@@ -37,7 +38,7 @@ class ObjectViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
-        queryset = Object.objects.all()
+        queryset = Object.objects.filter(is_deleted__exact=False)
         object_item = get_object_or_404(queryset, pk=pk)
         context = {'request': request}
         serializer = ObjectSerializer(object_item, context=context)
@@ -73,7 +74,7 @@ class ObjectViewSet(viewsets.ViewSet):
 
     @action(detail=True, methods=['GET'])
     def photos(self, request, pk=None):
-        queryset = ObjectPhoto.objects.all()
+        queryset = ObjectPhoto.objects.filter(is_deleted__exact=False)
         photos = get_list_or_404(queryset, pk=pk)
         serializer = ObjectPhotoSerializer(photos, many=True)
         return Response(serializer.data)
@@ -83,8 +84,11 @@ class ObjectViewSet(viewsets.ViewSet):
         if request.user.activity != EActivityStatus.ADMIN:
             return Response(status=403, data='You must enable ADMIN activity for this action')
 
-        object_item = Object.objects.get(pk=pk)
-        object_item.update(isActivated=True)
+        try:
+            object_item = Object.objects.get(is_deleted__exact=False, pk=pk)
+            object_item.update(isActivated=True)
+        except Object.DoesNotExist:
+            return Response(status=404)
 
         MoneyHelper.add(EMoneyType.MISSION, request.user, object_item)
 
@@ -92,7 +96,7 @@ class ObjectViewSet(viewsets.ViewSet):
 
     @action(detail=True, methods=['POST'])
     def manage(self, request, pk=None):
-        queryset = Object.objects.all()
+        queryset = Object.objects.filter(is_deleted__exact=False)
         object_item = get_object_or_404(queryset, pk=pk)
 
         context = {'request': request}
@@ -111,7 +115,7 @@ class ObjectViewSet(viewsets.ViewSet):
             return Response(status=403, data='You can manage any object only once in a day')
 
         if ObjectHelper.is_own_object(object_item, request.user):
-            object_item.update(timestamp=current_dt)
+            Object.objects.filter(pk=pk).update(timestamp=current_dt)
 
         serializer = ObjectUserManageSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -137,7 +141,7 @@ class ObjectViewSet(viewsets.ViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, pk=None):
-        queryset = Object.objects.all()
+        queryset = Object.objects.filter(is_deleted__exact=False)
         object_item = get_object_or_404(queryset, pk=pk)
         context = {'request': request}
         serializer = ObjectUpdateSerializer(object_item, data=request.data, context=context)
@@ -148,7 +152,7 @@ class ObjectViewSet(viewsets.ViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def partial_update(self, request, pk=None):
-        queryset = Object.objects.all()
+        queryset = Object.objects.filter(is_deleted__exact=False)
         object_item = get_object_or_404(queryset, pk=pk)
 
         if not ObjectHelper.can_object_be_captured(object_item, request.user):
@@ -161,3 +165,11 @@ class ObjectViewSet(viewsets.ViewSet):
         MoneyHelper.add(EMoneyType.CAPTURE_OBJECT, request.user, object_item)
         ExperienceHelper.add(EExperienceType.CAPTURE_UPDATE, request.user, object_item)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def destroy(self, request, pk=None):
+        try:
+           object_item = Object.objects.get(is_deleted__exact=False, pk=pk)
+           object_item.update(is_deleted=True)
+        except Object.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)

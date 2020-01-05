@@ -13,6 +13,7 @@ class Corporation(models.Model):
     """
     name = models.CharField(max_length=255, unique=True)
     description = models.CharField(max_length=255)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -55,6 +56,7 @@ class Mission(models.Model):
             MinValueValidator(0)
         ])
     description = models.CharField(max_length=255)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -85,6 +87,7 @@ class Object(models.Model):
     timestamp = models.DateTimeField(auto_created=True, auto_now=True)
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT)
     is_activated = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return "{} - {}".format(str(self.id), self.name)
@@ -105,6 +108,7 @@ class ObjectPhoto(models.Model):
     url = models.ImageField()
     object = models.ForeignKey(Object, on_delete=models.PROTECT)
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.url)
