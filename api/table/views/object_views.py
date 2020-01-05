@@ -17,8 +17,6 @@ from api.table.serializers.object_serializers import ObjectSerializer, ObjectUpd
 
 
 class ObjectViewSet(viewsets.ViewSet):
-    # permission_classes = (AllowAny,)
-
     def list(self, request):
         z, lat, lng = float(request.query_params['z']), float(request.query_params['lat']), float(
             request.query_params['lng'])

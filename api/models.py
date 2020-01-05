@@ -2,17 +2,10 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+from api.table.helpers.EActivityStatus import EActivityStatus
+from api.table.helpers.EObjectType import EObjectType
 from urban_app.settings import AUTH_USER_MODEL
 
-
-class EActivityStatus(models.IntegerChoices):
-    BUSINESS = 0
-    ADMIN = 1
-
-class EObjectType(models.IntegerChoices):
-    TREE = 0
-    LIGHT = 1
-    ADVERTISMENT = 3
 
 class Corporation(models.Model):
     """

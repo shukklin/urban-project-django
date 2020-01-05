@@ -36,7 +36,7 @@ class ObjectSerializer(serializers.ModelSerializer):
         return (datetime.datetime.now(datetime.timezone.utc) - obj.timestamp).days
 
     def get_in_property(self, obj):
-        return obj.user == self.context.get('request').user and datetime.datetime.now(datetime.timezone.utc) <= (obj.timestamp + datetime.timedelta(OBJECT_LOST_IN_DAYS))
+        return ObjectHelper.is_in_property(obj, self.context.get('request').user)
 
     class Meta:
         model = Object

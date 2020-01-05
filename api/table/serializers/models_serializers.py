@@ -18,11 +18,15 @@ class AuthSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    objects_count = serializers.SerializerMethodField(read_only=True)
+
+    def get_objects_count(self, obj):
+        return Object.objects.filter(user=obj).count()
 
     class Meta:
         model = User
         fields = ('id', 'email', 'username', 'first_name', 'last_name', 'experience',
-                  'money', 'corporation', 'avatar', 'activity')
+                  'money', 'corporation', 'avatar', 'activity', 'objects_count')
         read_only_fields = ('experience', 'money', 'username', 'email')
 
     def create(self, validated_data):
