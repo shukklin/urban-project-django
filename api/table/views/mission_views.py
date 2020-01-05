@@ -5,7 +5,9 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from api.table.helpers.ExperienceHelper import ExperienceHelper
 from api.table.helpers.MissionHelper import MissionHelper
+from api.table.helpers.MoneyHelper import MoneyHelper
 from ...models import Mission, MissionUser
 from api.table.serializers.models_serializers import MissionSerializer, MissionUserSerializer
 
@@ -53,6 +55,9 @@ class MissionViewSet(viewsets.ViewSet):
             return Response(status=403, data='The mission is not done yet')
 
         MissionUser.objects.filter(pk=pk).update(end_timestamp=datetime.datetime.now(datetime.timezone.utc))
+
+        MoneyHelper.set_money(mission.money, request.user)
+        ExperienceHelper.set_experience(mission.experience, request.user)
 
         return Response(status=status.HTTP_200_OK, data='Mission has been done')
 

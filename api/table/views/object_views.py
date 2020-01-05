@@ -9,7 +9,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from api.models import Object, ObjectsUserManage, EActivityStatus
-from api.table.constants.object_constants import OBJECT_CAN_CREATE_IN_RADIUS_METERS, OBJECT_CAPTURE_STREAK_COUNT
+
+from api.table.helpers.ExperienceHelper import ExperienceHelper, EExperienceType
+from api.table.helpers.MoneyHelper import MoneyHelper, EMoneyType
 from api.table.helpers.ObjectHelper import ObjectHelper
 from api.table.serializers.custom_serializers import LocationSerializer
 from api.table.serializers.models_serializers import ObjectUserManageSerializer
@@ -24,7 +26,7 @@ class ObjectViewSet(viewsets.ViewSet):
         if z > 0:
             radius = math.floor(100 / z)
         else:
-            return Response(status=400)
+            return Response(status=400, data='Input parameters is not correct')
 
         queryset = Object.objects.filter(
             location__distance_lt=(Point(lng, lat), Distance(km=radius)))
@@ -35,9 +37,9 @@ class ObjectViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None):
         queryset = Object.objects.all()
-        object = get_object_or_404(queryset, pk=pk)
+        object_item = get_object_or_404(queryset, pk=pk)
         context = {'request': request}
-        serializer = ObjectSerializer(object, context=context)
+        serializer = ObjectSerializer(object_item, context=context)
         return Response(serializer.data)
 
     @action(detail=True, methods=['POST'])
@@ -45,7 +47,10 @@ class ObjectViewSet(viewsets.ViewSet):
         if request.user.activity != EActivityStatus.ADMIN:
             return Response(status=403, data='You must enable ADMIN activity for this action')
 
-        Object.objects.filter(pk=pk).update(isActivated=True)
+        object_item = Object.objects.get(pk=pk)
+        object_item.update(isActivated=True)
+
+        MoneyHelper.add(EMoneyType.MISSION, request.user, object_item)
 
         return Response(status=status.HTTP_200_OK, data='Object has been activated')
 
@@ -63,19 +68,20 @@ class ObjectViewSet(viewsets.ViewSet):
 
         locked_until = serialized_object.data['locked_manage_until']
 
-        # if locked_until > current_dt:
-        #     return Response(status=403, data='Object is locked until ' + str(locked_until))
+        if ObjectHelper.is_object_locked(locked_until):
+             return Response(status=403, data='Object is locked until ' + str(locked_until))
 
         if ObjectHelper.can_not_object_be_managed(object_item, request.user):
             return Response(status=403, data='You can manage any object only once in a day')
 
-        if object_item.user == request.user:
-            Object.objects.filter(pk=pk).update(timestamp=current_dt)
+        if ObjectHelper.is_own_object(object_item, request.user):
+            object_item.update(timestamp=current_dt)
 
         serializer = ObjectUserManageSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         serializer.save(user=request.user, object_id=object_item.pk)
+        MoneyHelper.add(EMoneyType.MANAGE_OBJECT, request.user, object_item)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request):
@@ -85,14 +91,13 @@ class ObjectViewSet(viewsets.ViewSet):
 
         location = serializer.validated_data['location']
 
-        objects_in_radius_count = Object.objects.filter(
-            location__distance_lt=(location, Distance(m=OBJECT_CAN_CREATE_IN_RADIUS_METERS))).count()
-
-        if objects_in_radius_count > 0:
+        if not ObjectHelper.can_create_object(location):
             return Response(status=403, data='It is forbidden more than 1 object in ' + str(
-                OBJECT_CAN_CREATE_IN_RADIUS_METERS) + 'meters radius')
+               ObjectHelper.OBJECT_CAN_CREATE_IN_RADIUS_METERS) + 'meters radius')
 
         serializer.save(user=request.user)
+        MoneyHelper.add(EMoneyType.CREATE_OBJECT, request.user, serializer.data)
+        ExperienceHelper.add(EExperienceType.CREATE_OBJECT, request.user, serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, pk=None):
@@ -102,6 +107,8 @@ class ObjectViewSet(viewsets.ViewSet):
         serializer = ObjectUpdateSerializer(object_item, data=request.data, context=context)
         serializer.is_valid(raise_exception=True)
         serializer.save(isActivate=False)
+        MoneyHelper.add(EMoneyType.UPDATE_OBJECT, request.user, serializer.data)
+        ExperienceHelper.add(EExperienceType.UPDATE_OBJECT, request.user, serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def partial_update(self, request, pk=None):
@@ -115,4 +122,6 @@ class ObjectViewSet(viewsets.ViewSet):
         serializer = ObjectCaptureSerializer(object_item, data=request.data, context=context)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user)
+        MoneyHelper.add(EMoneyType.CAPTURE_OBJECT, request.user, object_item)
+        ExperienceHelper.add(EExperienceType.CAPTURE_UPDATE, request.user, object_item)
         return Response(serializer.data, status=status.HTTP_200_OK)

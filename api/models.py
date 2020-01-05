@@ -2,8 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from api.table.helpers.EActivityStatus import EActivityStatus
-from api.table.helpers.EObjectType import EObjectType
+from api.table.enums.EActivityStatus import EActivityStatus
+from api.table.enums.EObjectType import EObjectType
 from urban_app.settings import AUTH_USER_MODEL
 
 

@@ -1,9 +1,10 @@
+from api.table.enums.EAppConfig import EAppConfig
 from django.shortcuts import get_list_or_404
 from rest_framework import status, viewsets
 from rest_framework.response import Response
-from ...models import ObjectPhoto
-from api.table.constants.app_constants import MAX_UPLOAD_PHOTOS
+
 from api.table.serializers.models_serializers import ObjectPhotoSerializer
+from ...models import ObjectPhoto
 
 
 class ObjectPhotoViewSet(viewsets.ViewSet):
@@ -23,7 +24,7 @@ class ObjectPhotoViewSet(viewsets.ViewSet):
         list_images = request.FILES.getlist('images[]')
 
         # If current count photos more than in conf do throw an error
-        if len(list_images) > MAX_UPLOAD_PHOTOS:
+        if len(list_images) >  EAppConfig.MAX_UPLOAD_PHOTOS:
             return Response(status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
         if len(list_images) == 0:

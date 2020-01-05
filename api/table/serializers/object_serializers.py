@@ -4,7 +4,6 @@ from drf_extra_fields.geo_fields import PointField
 from rest_framework import serializers
 
 from api.models import Object, ObjectsUserManage
-from api.table.constants.object_constants import OBJECT_LOCKED_IN_DAYS, OBJECT_LOST_IN_DAYS, OBJECT_CAPTURE_STREAK_COUNT
 from api.table.helpers.ObjectHelper import ObjectHelper
 
 
@@ -20,14 +19,14 @@ class ObjectSerializer(serializers.ModelSerializer):
     until_capture_count = serializers.SerializerMethodField(read_only=True)
 
     def get_until_capture_count(self, obj):
-        return OBJECT_CAPTURE_STREAK_COUNT - ObjectsUserManage.objects.filter(timestamp__gt=obj.timestamp, user=self.context.get('request').user).count()
+        return ObjectHelper.OBJECT_CAPTURE_STREAK_COUNT - ObjectsUserManage.objects.filter(timestamp__gt=obj.timestamp, user=self.context.get('request').user).count()
 
     def get_can_be_captured(self, obj):
         return ObjectHelper.can_object_be_captured(obj, self.context.get('request').user)
 
     def get_locked_manage_until(self, obj):
         return (obj.timestamp + datetime.timedelta(
-           OBJECT_LOCKED_IN_DAYS))
+           ObjectHelper.OBJECT_LOCKED_IN_DAYS))
 
     def get_offense_status(self, obj):
         return ObjectsUserManage.objects.filter(object_id=obj.id, timestamp__gt=obj.timestamp).exclude(user=obj.user).count()

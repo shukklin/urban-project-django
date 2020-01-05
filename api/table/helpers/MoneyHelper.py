@@ -2,22 +2,32 @@ from django.db.models import F
 
 from api.models import User
 from api.table.helpers import ObjectHelper
+from api.table.helpers.CorporationHelper import CorporationHelper
+from api.table.enums.EActivityStatus import EActivityStatus
 
+
+class EManageType:
+    OWN_OBJECT = 2
+    FOREIGN_OBJECT = 1
+    CORPORATION_OBJECT = 2
+
+class ECaptureType:
+    FOREIGN_OBJECT = 1
+    EMPTY_OBJECT = 2
+
+class EMissionType:
+    ADMIN = 2
 
 class EMoneyType:
     CREATE_OBJECT = 10
     UPDATE_OBJECT = 5
-    MANAGE_OWN_OBJECT = 2
-    MANAGE_FOREIGN_OBJECT = 1
-    MANAGE_CORPORATION_OBJECT = 2
-    CAPTURE_FOREIGN_OBJECT = 1
-    CAPTURE_EMPTY_OBJECT = 2
-    EXEC_MISSION_USER = 1
-    EXEC_MISSION_ADMIN = 1
+    MANAGE_OBJECT = 1
+    CAPTURE_OBJECT = 1
+    MISSION = 1
 
 class MoneyHelper:
     @staticmethod
-    def add_money(type, user, obj):
+    def add(type, user, obj):
         money =  MoneyHelper.get_money(type, user, obj)
 
         if money == 0:
@@ -31,22 +41,26 @@ class MoneyHelper:
             return EMoneyType.CREATE_OBJECT
         elif type == EMoneyType.UPDATE_OBJECT:
             return EMoneyType.UPDATE_OBJECT
-        elif type == EMoneyType.MANAGE_OWN_OBJECT and obj.user == user:
-            return EMoneyType.MANAGE_OWN_OBJECT
-        elif type == EMoneyType.MANAGE_FOREIGN_OBJECT and obj.user != user:
-            return EMoneyType.MANAGE_FOREIGN_OBJECT
-        elif type == EMoneyType.MANAGE_CORPORATION_OBJECT and obj.user.corporation:
-            return EMoneyType.MANAGE_CORPORATION_OBJECT
-        elif type == EMoneyType.CAPTURE_FOREIGN_OBJECT and ObjectHelper.can_object_be_captured(obj, user):
-            return EMoneyType.CAPTURE_FOREIGN_OBJECT
-        elif type == EMoneyType.CAPTURE_EMPTY_OBJECT and ObjectHelper.can_object_be_captured(obj, user):
-            return EMoneyType.CAPTURE_EMPTY_OBJECT
-        elif type == EMoneyType.EXEC_MISSION_USER:
-            return EMoneyType.EXEC_MISSION_USER
-        elif type == EMoneyType.EXEC_MISSION_ADMIN:
-            return EMoneyType.EXEC_MISSION_ADMIN
+        elif type == EMoneyType.MANAGE_OBJECT:
+            if obj.user == user:
+                return EManageType.OWN_OBJECT
+            elif obj.user != user:
+                return EManageType.FOREIGN_OBJECT
+            if obj.user.corporation:
+                return EManageType.CORPORATION_OBJECT
+        elif type == EMoneyType.CAPTURE_OBJECT:
+            if ObjectHelper.can_object_be_captured(obj, user):
+                return ECaptureType.FOREIGN_OBJECT
+            elif ObjectHelper.can_object_be_captured(obj, user):
+                return ECaptureType.EMPTY_OBJECT
+        elif type == EMoneyType.MISSION:
+            if user.activity == EActivityStatus.ADMIN:
+                return EMissionType.ADMIN
         return 0
 
     @staticmethod
     def set_money(money, user):
+        if user.corporation:
+            money = CorporationHelper.charge(money)
+
         User.objects.filter(pk=user.id).update(money=F('money') + money)
