@@ -1,5 +1,3 @@
-import datetime
-
 from django.db.models import F
 
 from api.models import User

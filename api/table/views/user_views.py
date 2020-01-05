@@ -1,9 +1,10 @@
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.models import User
-from api.table.serializers.models_serializers import UserSerializer
+from api.models import User, ObjectPhoto
+from api.table.serializers.models_serializers import UserSerializer, ObjectPhotoSerializer
 
 
 class UserViewSet(viewsets.ViewSet):
@@ -27,3 +28,10 @@ class UserViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'])
+    def photos(self, request):
+        queryset = ObjectPhoto.objects.all()
+        photos = get_list_or_404(queryset, user=request.user)
+        serializer = ObjectPhotoSerializer(photos, many=True)
+        return Response(serializer.data)

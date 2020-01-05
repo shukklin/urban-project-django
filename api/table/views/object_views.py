@@ -3,18 +3,19 @@ import math
 
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import Distance
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.models import Object, ObjectsUserManage, EActivityStatus
+from api.models import Object, ObjectsUserManage, EActivityStatus, ObjectPhoto
+from api.table.enums.EAppConfig import EAppConfig
 
 from api.table.helpers.ExperienceHelper import ExperienceHelper, EExperienceType
 from api.table.helpers.MoneyHelper import MoneyHelper, EMoneyType
 from api.table.helpers.ObjectHelper import ObjectHelper
 from api.table.serializers.custom_serializers import LocationSerializer
-from api.table.serializers.models_serializers import ObjectUserManageSerializer
+from api.table.serializers.models_serializers import ObjectUserManageSerializer, ObjectPhotoSerializer
 from api.table.serializers.object_serializers import ObjectSerializer, ObjectUpdateSerializer, ObjectCaptureSerializer
 
 
@@ -40,6 +41,41 @@ class ObjectViewSet(viewsets.ViewSet):
         object_item = get_object_or_404(queryset, pk=pk)
         context = {'request': request}
         serializer = ObjectSerializer(object_item, context=context)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['POST'])
+    def photos(self, request):
+        list_images = request.FILES.getlist('images[]')
+
+        # If current count photos more than in conf do throw an error
+        if len(list_images) > EAppConfig.MAX_UPLOAD_PHOTOS:
+            return Response(status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
+        if len(list_images) == 0:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # prepare data for serializer
+        prepared_data = [
+            {
+                'user': request.user.id,
+                'object': self.request.data['object'],
+                'url': image
+            }
+            for image in list_images
+        ]
+
+        serializer = ObjectPhotoSerializer(data=prepared_data, many=True)
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['GET'])
+    def photos(self, request, pk=None):
+        queryset = ObjectPhoto.objects.all()
+        photos = get_list_or_404(queryset, pk=pk)
+        serializer = ObjectPhotoSerializer(photos, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=['POST'])

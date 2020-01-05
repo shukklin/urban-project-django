@@ -14,11 +14,9 @@ class Corporation(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.CharField(max_length=255)
 
-    class Meta:
-        db_table = 'corporations'
-
     def __str__(self):
         return self.name
+
 
 class User(AbstractUser):
     """
@@ -88,9 +86,6 @@ class Object(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT)
     is_activated = models.BooleanField(default=False)
 
-    class Meta:
-        db_table = 'objects'
-
     def __str__(self):
         return "{} - {}".format(str(self.id), self.name)
 
@@ -110,9 +105,6 @@ class ObjectPhoto(models.Model):
     url = models.ImageField()
     object = models.ForeignKey(Object, on_delete=models.PROTECT)
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.PROTECT)
-
-    class Meta:
-        db_table = "photos"
 
     def __str__(self):
         return str(self.url)
