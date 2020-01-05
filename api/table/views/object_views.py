@@ -3,15 +3,13 @@ import math
 
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import Distance
-from django.http import Http404
 from django.shortcuts import get_object_or_404, get_list_or_404
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.models import Object, ObjectsUserManage, EActivityStatus, ObjectPhoto
+from api.models import Object, EActivityStatus, ObjectPhoto
 from api.table.enums.EAppConfig import EAppConfig
-
 from api.table.helpers.ExperienceHelper import ExperienceHelper, EExperienceType
 from api.table.helpers.MoneyHelper import MoneyHelper, EMoneyType
 from api.table.helpers.ObjectHelper import ObjectHelper
