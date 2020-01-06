@@ -4,10 +4,19 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from api.models import User, ObjectPhoto
-from api.table.serializers.models_serializers import UserSerializer, ObjectPhotoSerializer
+from api.table.permissions.IsCreationOrIsAuthenticated import IsCreationOrIsAuthenticated
+from api.table.serializers.models_serializers import UserSerializer, ObjectPhotoSerializer, AuthSerializer
 
 
 class UserViewSet(viewsets.ViewSet):
+    permission_classes = (IsCreationOrIsAuthenticated, )
+
+    def create(self, request):
+        serializer = AuthSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     def list(self, request):
         queryset = User.objects.all()
         serializer = UserSerializer(queryset, many=True)
