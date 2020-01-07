@@ -17,20 +17,15 @@ class UserViewSet(viewsets.ViewSet):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def list(self, request):
+    def list(self, request,):
         queryset = User.objects.all()
-        serializer = UserSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-    def retrieve(self, request, pk=None):
-        queryset = User.objects.all()
-        user = get_object_or_404(queryset, pk=pk)
+        user = get_object_or_404(queryset, pk=request.user.id)
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
     def update(self, request, pk=None):
         queryset = User.objects.all()
-        user = get_object_or_404(queryset, pk=pk)
+        user = get_object_or_404(queryset, pk=request.user.id)
 
         serializer = UserSerializer(user, data=request.data)
 

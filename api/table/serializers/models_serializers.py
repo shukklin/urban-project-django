@@ -27,7 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'email', 'username', 'first_name', 'last_name', 'experience',
                   'money', 'corporation', 'avatar', 'activity', 'objects_count')
-        read_only_fields = ('experience', 'money', 'username', 'email')
+        read_only_fields = ('experience', 'money', 'username', 'email', 'password')
 
     def create(self, validated_data):
         return User.objects.create(**validated_data)
