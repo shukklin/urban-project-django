@@ -48,7 +48,7 @@ class MissionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class MissionUserSerializer(serializers.ModelSerializer):
-    mission = serializers.StringRelatedField()
+    mission = serializers.StringRelatedField(read_only=True)
     until_manage_done_count = serializers.SerializerMethodField(read_only=True)
 
     def get_until_manage_done_count(self, obj):
@@ -60,7 +60,7 @@ class MissionUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MissionUser
         fields = '__all__'
-        read_only_fields = ('user', 'mission', 'start_timestamp', 'end_timestamp')
+        read_only_fields = ('user', 'start_timestamp', 'end_timestamp')
 
     def create(self, validated_data):
         return MissionUser.objects.create(**validated_data)
