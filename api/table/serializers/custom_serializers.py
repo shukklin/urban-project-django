@@ -9,4 +9,4 @@ class LocationSerializer(ObjectSerializer):
 
     class Meta:
         model = Object
-        fields = ['id', 'location', 'in_property']
+        fields = ['id', 'location', 'is_own_object']

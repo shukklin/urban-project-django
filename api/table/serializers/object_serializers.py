@@ -14,8 +14,9 @@ class ObjectSerializer(serializers.ModelSerializer):
     location = PointField()
     offense_status = serializers.SerializerMethodField()
     locked_manage_until = serializers.SerializerMethodField(read_only=True)
-    in_property = serializers.SerializerMethodField(read_only=True)
+    is_own_object = serializers.SerializerMethodField(read_only=True)
     can_be_captured = serializers.SerializerMethodField(read_only=True)
+    can_be_managed = serializers.SerializerMethodField(read_only=True)
     until_capture_count = serializers.SerializerMethodField(read_only=True)
 
     def get_until_capture_count(self, obj):
@@ -23,6 +24,10 @@ class ObjectSerializer(serializers.ModelSerializer):
 
     def get_can_be_captured(self, obj):
         return ObjectHelper.can_object_be_captured(obj, self.context.get('request').user)
+
+    def get_can_be_managed(self, obj):
+        return datetime.datetime.now(datetime.timezone.utc) > (obj.timestamp + datetime.timedelta(
+           ObjectHelper.OBJECT_LOCKED_IN_DAYS))
 
     def get_locked_manage_until(self, obj):
         return (obj.timestamp + datetime.timedelta(
@@ -34,8 +39,8 @@ class ObjectSerializer(serializers.ModelSerializer):
     def get_manage_status(self, obj):
         return (datetime.datetime.now(datetime.timezone.utc) - obj.timestamp).days
 
-    def get_in_property(self, obj):
-        return ObjectHelper.is_in_property(obj, self.context.get('request').user)
+    def get_is_own_object(self, obj):
+        return self.context.get('request').user.id == obj.user.id
 
     class Meta:
         model = Object

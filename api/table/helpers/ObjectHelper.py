@@ -13,13 +13,13 @@ class ObjectHelper:
 
     @staticmethod
     def is_object_capture_streak_done(object_item, user):
-        return ObjectHelper.OBJECT_CAPTURE_STREAK_COUNT - ObjectsUserManage.objects.filter(timestamp__gt=object_item.timestamp,
-                                                                               user=user).count() == 0
+        return (ObjectHelper.OBJECT_CAPTURE_STREAK_COUNT - ObjectsUserManage.objects.filter(timestamp__gt=object_item.timestamp, object_id__exact=object_item.id,
+                                                                               user=user).count()) == 0
 
     @staticmethod
     def can_object_be_captured(object_item, user):
-        return object_item.user != user and (ObjectHelper.is_object_capture_streak_done(object_item, user)
-                 or not ObjectHelper.is_in_property(object_item, user))
+        return object_item.user.id != user.id and (ObjectHelper.is_object_capture_streak_done(object_item, user)
+                                                   or not ObjectHelper.is_object_in_property(object_item))
 
     @staticmethod
     def can_create_object(location):
@@ -33,7 +33,7 @@ class ObjectHelper:
 
     @staticmethod
     def is_own_object(object_item, user):
-        return object_item.user == user
+        return object_item.user.id == user.id
 
     @staticmethod
     def can_not_object_be_managed(object_item, user):
@@ -44,5 +44,5 @@ class ObjectHelper:
         return len(last_manage_records) > 0 and current_dt < (last_manage_records[0].timestamp + datetime.timedelta(1))
 
     @staticmethod
-    def is_in_property(object_item, user):
-        return object_item.user == user and datetime.datetime.now(datetime.timezone.utc) < (object_item.timestamp + datetime.timedelta(ObjectHelper.OBJECT_LOST_IN_DAYS))
+    def is_object_in_property(object_item):
+        return datetime.datetime.now(datetime.timezone.utc) < (object_item.timestamp + datetime.timedelta(ObjectHelper.OBJECT_LOST_IN_DAYS))
