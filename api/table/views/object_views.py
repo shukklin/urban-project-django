@@ -82,7 +82,7 @@ class ObjectViewSet(viewsets.ViewSet):
         try:
             object_item = Object.objects.get(is_deleted__exact=False, pk=pk)
 
-            if ObjectHelper.can_be_activated(object_item, self.request.user):
+            if not ObjectHelper.can_be_activated(object_item, self.request.user):
                 return Response(status=403, data='You can not activate this object')
 
             object_item.update(isActivated=True)
