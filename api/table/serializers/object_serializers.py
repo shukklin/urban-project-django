@@ -4,6 +4,7 @@ from drf_extra_fields.geo_fields import PointField
 from rest_framework import serializers
 
 from api.models import Object, ObjectsUserManage
+from api.table.enums.EActivityStatus import EActivityStatus
 from api.table.helpers.ObjectHelper import ObjectHelper
 
 
@@ -17,6 +18,7 @@ class ObjectSerializer(serializers.ModelSerializer):
     is_own_object = serializers.SerializerMethodField(read_only=True)
     can_be_captured = serializers.SerializerMethodField(read_only=True)
     can_be_managed = serializers.SerializerMethodField(read_only=True)
+    can_be_activated = serializers.SerializerMethodField(read_only=True)
     until_capture_count = serializers.SerializerMethodField(read_only=True)
 
     def get_until_capture_count(self, obj):
@@ -24,6 +26,9 @@ class ObjectSerializer(serializers.ModelSerializer):
 
     def get_can_be_captured(self, obj):
         return ObjectHelper.can_object_be_captured(obj, self.context.get('request').user)
+
+    def get_can_be_activated(self, obj):
+        return not obj.is_activated and self.context.get('request').user.activity == EActivityStatus.ADMIN
 
     def get_can_be_managed(self, obj):
         return datetime.datetime.now(datetime.timezone.utc) > (obj.timestamp + datetime.timedelta(
