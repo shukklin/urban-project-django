@@ -8,14 +8,14 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.models import Object, EActivityStatus, ObjectPhoto
+from api.models import Object, ObjectPhoto
 from api.table.enums.EAppConfig import EAppConfig
 from api.table.helpers.ExperienceHelper import ExperienceHelper, EExperienceType
 from api.table.helpers.MoneyHelper import MoneyHelper, EMoneyType
 from api.table.helpers.ObjectHelper import ObjectHelper
 from api.table.serializers.custom_serializers import LocationSerializer
 from api.table.serializers.models_serializers import ObjectUserManageSerializer, ObjectPhotoSerializer
-from api.table.serializers.object_serializers import ObjectSerializer, ObjectUpdateSerializer, ObjectCaptureSerializer
+from api.table.serializers.object_serializers import ObjectSerializer, ObjectUpdateSerializer
 
 
 class ObjectViewSet(viewsets.ViewSet):
@@ -98,15 +98,10 @@ class ObjectViewSet(viewsets.ViewSet):
         queryset = Object.objects.filter(is_deleted__exact=False)
         object_item = get_object_or_404(queryset, pk=pk)
 
-        context = {'request': request}
-
         current_dt = datetime.datetime.now(datetime.timezone.utc)
 
-        if not ObjectHelper.can_be_managed(object_item):
+        if not ObjectHelper.can_be_managed(object_item, request.user):
             return Response(status=403, data='You do not have permission to manage this object')
-
-        if ObjectHelper.is_throttling_to_manage_not_passed(object_item, request.user):
-            return Response(status=403, data='You can not manage this object too frequently')
 
         if ObjectHelper.is_own_object(object_item, request.user) and ObjectHelper.is_object_in_property(object_item):
             Object.objects.filter(pk=pk).update(timestamp=current_dt)
@@ -152,13 +147,13 @@ class ObjectViewSet(viewsets.ViewSet):
         if not ObjectHelper.can_object_be_captured(object_item, request.user):
             return Response(status=403, data='You can not capture this object yet')
 
-        context = {'request': request}
-        serializer = ObjectCaptureSerializer(object_item, data=request.data, context=context)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user)
+        current_dt = datetime.datetime.now(datetime.timezone.utc)
+
+        Object.objects.filter(pk=pk).update(timestamp=current_dt, user=request.user)
+
         MoneyHelper.add(EMoneyType.CAPTURE_OBJECT, request.user, object_item)
         ExperienceHelper.add(EExperienceType.CAPTURE_UPDATE, request.user, object_item)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(data='Object was successfully captured', status=status.HTTP_200_OK)
 
     def destroy(self, request, pk=None):
         try:
