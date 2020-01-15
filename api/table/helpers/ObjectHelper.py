@@ -7,7 +7,7 @@ from api.table.enums.EActivityStatus import EActivityStatus
 
 
 class ObjectHelper:
-    OBJECT_LOCKED_IN_DAYS = 0
+    OBJECT_LOCKED_IN_DAYS = 2
     OBJECT_LOST_IN_DAYS = 30
     OBJECT_CAN_CREATE_IN_RADIUS_METERS = 50
     OBJECT_CAPTURE_STREAK_COUNT = 1

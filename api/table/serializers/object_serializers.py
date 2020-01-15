@@ -38,8 +38,12 @@ class ObjectSerializer(serializers.ModelSerializer):
         return ObjectHelper.can_be_managed(obj, self.context.get('request').user)
 
     def get_locked_manage_until(self, obj):
-        return (obj.timestamp + datetime.timedelta(
+        locked_until_dt = (obj.timestamp + datetime.timedelta(
            ObjectHelper.OBJECT_LOCKED_IN_DAYS))
+        throttling_locked_until_dt = (obj.timestamp + datetime.timedelta(
+           ObjectHelper.OBJECT_MANAGE_THROTTLING))
+
+        return max(locked_until_dt, throttling_locked_until_dt)
 
     def get_offense_status(self, obj):
         return ObjectsUserManage.objects.filter(object_id=obj.id, timestamp__gt=obj.timestamp).exclude(user=obj.user).count()
