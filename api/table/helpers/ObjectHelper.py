@@ -3,6 +3,7 @@ import datetime
 from django.contrib.gis.measure import Distance
 
 from api.models import ObjectsUserManage, Object
+from api.table.enums.EActivityStatus import EActivityStatus
 
 
 class ObjectHelper:
@@ -42,6 +43,10 @@ class ObjectHelper:
         last_manage_records = ObjectsUserManage.objects.order_by('-id').filter(timestamp__gt=object_item.timestamp,
                                                                                user=user)
         return len(last_manage_records) > 0 and current_dt < (last_manage_records[0].timestamp + datetime.timedelta(1))
+
+    @staticmethod
+    def can_be_activated(object_item, user):
+        return not object_item.is_activated and user.activity == EActivityStatus.ADMIN
 
     @staticmethod
     def is_object_in_property(object_item):

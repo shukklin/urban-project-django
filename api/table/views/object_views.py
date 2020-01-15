@@ -79,11 +79,12 @@ class ObjectViewSet(viewsets.ViewSet):
 
     @action(detail=True, methods=['POST'])
     def activate(self, request, pk=None):
-        if request.user.activity != EActivityStatus.ADMIN:
-            return Response(status=403, data='You must enable ADMIN activity for this action')
-
         try:
             object_item = Object.objects.get(is_deleted__exact=False, pk=pk)
+
+            if ObjectHelper.can_be_activated(object_item, self.request.user):
+                return Response(status=403, data='You can not activate this object')
+
             object_item.update(isActivated=True)
         except Object.DoesNotExist:
             return Response(status=404)

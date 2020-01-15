@@ -28,7 +28,7 @@ class ObjectSerializer(serializers.ModelSerializer):
         return ObjectHelper.can_object_be_captured(obj, self.context.get('request').user)
 
     def get_can_be_activated(self, obj):
-        return not obj.is_activated and self.context.get('request').user.activity == EActivityStatus.ADMIN
+        return ObjectHelper.can_be_activated(obj, self.context.get('request'))
 
     def get_can_be_managed(self, obj):
         return datetime.datetime.now(datetime.timezone.utc) > (obj.timestamp + datetime.timedelta(
