@@ -35,8 +35,7 @@ class ObjectSerializer(serializers.ModelSerializer):
         return ObjectHelper.can_be_deleted(obj, self.context.get('request').user)
 
     def get_can_be_managed(self, obj):
-        return datetime.datetime.now(datetime.timezone.utc) > (obj.timestamp + datetime.timedelta(
-           ObjectHelper.OBJECT_LOCKED_IN_DAYS))
+        return ObjectHelper.can_be_managed(obj)
 
     def get_locked_manage_until(self, obj):
         return (obj.timestamp + datetime.timedelta(

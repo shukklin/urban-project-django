@@ -29,7 +29,7 @@ class ObjectViewSet(viewsets.ViewSet):
             return Response(status=400, data='Input parameters is not correct')
 
         queryset = Object.objects.filter(is_deleted__exact=False,
-            location__distance_lt=(Point(lng, lat), Distance(km=radius)))
+                                         location__distance_lt=(Point(lng, lat), Distance(km=radius)))
 
         context = {'request': request}
         serializer = LocationSerializer(queryset, many=True, context=context)
@@ -100,20 +100,15 @@ class ObjectViewSet(viewsets.ViewSet):
 
         context = {'request': request}
 
-        serialized_object = ObjectSerializer(object_item, data=request.data, context=context)
-        serialized_object.is_valid(raise_exception=True)
-
         current_dt = datetime.datetime.now(datetime.timezone.utc)
 
-        locked_until = serialized_object.data['locked_manage_until']
+        if not ObjectHelper.can_be_managed(object_item):
+            return Response(status=403, data='You do not have permission to manage this object')
 
-        if ObjectHelper.is_object_locked(locked_until):
-             return Response(status=403, data='Object is locked until ' + str(locked_until))
+        if ObjectHelper.is_throttling_to_manage_not_passed(object_item, request.user):
+            return Response(status=403, data='You can not manage this object too frequently')
 
-        if ObjectHelper.can_not_object_be_managed(object_item, request.user):
-            return Response(status=403, data='You can manage any object only once in a day')
-
-        if ObjectHelper.is_own_object(object_item, request.user):
+        if ObjectHelper.is_own_object(object_item, request.user) and ObjectHelper.is_object_in_property(object_item):
             Object.objects.filter(pk=pk).update(timestamp=current_dt)
 
         serializer = ObjectUserManageSerializer(data=request.data)
@@ -132,7 +127,7 @@ class ObjectViewSet(viewsets.ViewSet):
 
         if not ObjectHelper.can_create_object(location):
             return Response(status=403, data='It is forbidden more than 1 object in ' + str(
-               ObjectHelper.OBJECT_CAN_CREATE_IN_RADIUS_METERS) + 'meters radius')
+                ObjectHelper.OBJECT_CAN_CREATE_IN_RADIUS_METERS) + 'meters radius')
 
         serializer.save(user=request.user)
         MoneyHelper.add(EMoneyType.CREATE_OBJECT, request.user, serializer.data)
@@ -167,12 +162,12 @@ class ObjectViewSet(viewsets.ViewSet):
 
     def destroy(self, request, pk=None):
         try:
-           object_item = Object.objects.get(is_deleted__exact=False, pk=pk)
+            object_item = Object.objects.get(is_deleted__exact=False, pk=pk)
 
-           if not ObjectHelper.can_be_deleted(object_item, self.request.user):
-               return Response(status=403, data='You can not delete this object')
+            if not ObjectHelper.can_be_deleted(object_item, self.request.user):
+                return Response(status=403, data='You can not delete this object')
 
-           Object.objects.filter(is_deleted__exact=False, pk=pk).update(is_deleted=True)
+            Object.objects.filter(is_deleted__exact=False, pk=pk).update(is_deleted=True)
         except Object.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)

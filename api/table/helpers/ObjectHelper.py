@@ -7,7 +7,7 @@ from api.table.enums.EActivityStatus import EActivityStatus
 
 
 class ObjectHelper:
-    OBJECT_LOCKED_IN_DAYS = 5
+    OBJECT_LOCKED_IN_DAYS = 0
     OBJECT_LOST_IN_DAYS = 30
     OBJECT_CAN_CREATE_IN_RADIUS_METERS = 50
     OBJECT_CAPTURE_STREAK_COUNT = 3
@@ -28,19 +28,21 @@ class ObjectHelper:
             location__distance_lt=(location, Distance(m=ObjectHelper.OBJECT_CAN_CREATE_IN_RADIUS_METERS))).count() == 0
 
     @staticmethod
-    def is_object_locked(locked_until):
+    def can_be_managed(object_item):
         current_dt = datetime.datetime.now(datetime.timezone.utc)
-        return  locked_until > current_dt
+
+        return current_dt > (object_item.timestamp + datetime.timedelta(
+           ObjectHelper.OBJECT_LOCKED_IN_DAYS))
 
     @staticmethod
     def is_own_object(object_item, user):
         return object_item.user.id == user.id
 
     @staticmethod
-    def can_not_object_be_managed(object_item, user):
+    def is_throttling_to_manage_not_passed(object_item, user):
         current_dt = datetime.datetime.now(datetime.timezone.utc)
 
-        last_manage_records = ObjectsUserManage.objects.order_by('-id').filter(timestamp__gt=object_item.timestamp,
+        last_manage_records = ObjectsUserManage.objects.order_by('-id').filter(timestamp__gt=object_item.timestamp, object_id__exact=object_item.id,
                                                                                user=user)
         return len(last_manage_records) > 0 and current_dt < (last_manage_records[0].timestamp + datetime.timedelta(1))
 
