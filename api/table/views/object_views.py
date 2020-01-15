@@ -85,7 +85,7 @@ class ObjectViewSet(viewsets.ViewSet):
             if not ObjectHelper.can_be_activated(object_item, self.request.user):
                 return Response(status=403, data='You can not activate this object')
 
-            object_item.update(isActivated=True)
+            Object.objects.filter(is_deleted__exact=False, pk=pk).update(is_activated=True)
         except Object.DoesNotExist:
             return Response(status=404)
 
@@ -168,7 +168,11 @@ class ObjectViewSet(viewsets.ViewSet):
     def destroy(self, request, pk=None):
         try:
            object_item = Object.objects.get(is_deleted__exact=False, pk=pk)
-           object_item.update(is_deleted=True)
+
+           if not ObjectHelper.can_be_deleted(object_item, self.request.user):
+               return Response(status=403, data='You can not delete this object')
+
+           Object.objects.filter(is_deleted__exact=False, pk=pk).update(is_deleted=True)
         except Object.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)

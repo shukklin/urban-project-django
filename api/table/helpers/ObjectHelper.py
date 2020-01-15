@@ -49,5 +49,9 @@ class ObjectHelper:
         return not object_item.is_activated and user.activity == EActivityStatus.ADMIN
 
     @staticmethod
+    def can_be_deleted(object_item, user):
+        return not object_item.is_deleted and user.activity == EActivityStatus.ADMIN
+
+    @staticmethod
     def is_object_in_property(object_item):
         return datetime.datetime.now(datetime.timezone.utc) < (object_item.timestamp + datetime.timedelta(ObjectHelper.OBJECT_LOST_IN_DAYS))
