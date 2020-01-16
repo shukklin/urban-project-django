@@ -69,6 +69,10 @@ class CorporationSerializer(serializers.ModelSerializer):
     count_players = serializers.SerializerMethodField(read_only=True)
     experience = serializers.SerializerMethodField(read_only=True)
     money = serializers.SerializerMethodField(read_only=True)
+    is_member = serializers.SerializerMethodField(read_only=True)
+
+    def get_is_member(self, obj):
+        return User.objects.filter(pk=self.context.get('request').user.id, corporation=obj).exists()
 
     def get_money(self, obj):
         return User.objects.filter(corporation=obj).aggregate(Sum('money'))['money__sum']

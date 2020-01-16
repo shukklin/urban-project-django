@@ -13,12 +13,6 @@ from api.table.serializers.models_serializers import MissionSerializer, MissionU
 
 
 class MissionViewSet(viewsets.ViewSet):
-    def create(self, request):
-        serializer = MissionSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
     def retrieve(self, request, pk=None):
         queryset = Mission.objects.all()
         mission = get_object_or_404(queryset, pk=pk)

@@ -3,8 +3,9 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.models import User, ObjectPhoto, MissionUser
+from api.models import User, ObjectPhoto, MissionUser, Corporation
 from api.table.permissions.IsCreationOrIsAuthenticated import IsCreationOrIsAuthenticated
+from api.table.serializers.custom_serializers import ChangeUserCorporationSerializer
 from api.table.serializers.models_serializers import UserSerializer, ObjectPhotoSerializer, AuthSerializer, \
     MissionUserSerializer
 
@@ -40,6 +41,15 @@ class UserViewSet(viewsets.ViewSet):
         photos = get_list_or_404(queryset, user=request.user)
         serializer = ObjectPhotoSerializer(photos, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['PUT'])
+    def changecorporation(self, request):
+        serializer = ChangeUserCorporationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        User.objects.filter(pk=request.user.id).update(corporation=serializer.validated_data['corporation'])
+
+        return Response(data='Corporation was successfully changed', status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'])
     def missions(self, request):
