@@ -1,4 +1,7 @@
+import datetime
+
 from django.db.models import Sum
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from api.models import *
@@ -36,16 +39,51 @@ class UserSerializer(serializers.ModelSerializer):
 class MissionSerializer(serializers.ModelSerializer):
     in_progress = serializers.SerializerMethodField(read_only=True)
     is_finished = serializers.SerializerMethodField(read_only=True)
+    can_finish = serializers.SerializerMethodField(read_only=True)
+    current_progress = serializers.SerializerMethodField(read_only=True)
 
     def get_in_progress(self, obj):
-        return MissionUser.objects.filter(user=self.context.get('request').user, start_timestamp__isnull=False, end_timestamp__isnull=True, mission=obj).exists()
+        return MissionUser.objects.filter(user=self.context.get('request').user, start_timestamp__isnull=False,
+                                          end_timestamp__isnull=True, mission=obj).exists()
 
     def get_is_finished(self, obj):
-        return MissionUser.objects.filter(user=self.context.get('request').user, end_timestamp__isnull=False, mission=obj).exists()
+        try:
+            user_mission = get_object_or_404(
+                MissionUser.objects.filter(mission_id=obj.id, user=self.context.get('request').user))
+        except:
+            return None
+        return MissionHelper.is_mission_finished(user_mission)
+
+    def get_can_finish(self, obj):
+        try:
+            user_mission = get_object_or_404(
+                MissionUser.objects.filter(mission_id=obj.id, user=self.context.get('request').user))
+            mission = get_object_or_404(Mission.objects.all(), pk=obj.id)
+        except:
+            return None
+
+        return not MissionHelper.is_mission_finished(user_mission) and (
+                    MissionHelper.is_mission_done(user_mission, mission, self.context.get(
+                        'request').user))
+
+    def get_current_progress(self, obj):
+        try:
+            user_mission = get_object_or_404(
+                MissionUser.objects.filter(mission_id=obj.id, user=self.context.get('request').user))
+        except:
+            return None
+        return MissionHelper.get_manage_done_count(user_mission, self.context.get('request').user)
 
     class Meta:
         model = Mission
         fields = '__all__'
+
+
+class MissionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Mission
+        fields = ('id', 'name')
+
 
 class MissionUserSerializer(serializers.ModelSerializer):
     mission = serializers.StringRelatedField(read_only=True)
@@ -64,6 +102,7 @@ class MissionUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return MissionUser.objects.create(**validated_data)
+
 
 class CorporationSerializer(serializers.ModelSerializer):
     count_players = serializers.SerializerMethodField(read_only=True)

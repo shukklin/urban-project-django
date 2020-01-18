@@ -9,14 +9,15 @@ from api.table.helpers.ExperienceHelper import ExperienceHelper
 from api.table.helpers.MissionHelper import MissionHelper
 from api.table.helpers.MoneyHelper import MoneyHelper
 from ...models import Mission, MissionUser
-from api.table.serializers.models_serializers import MissionSerializer, MissionUserSerializer
+from api.table.serializers.models_serializers import MissionSerializer, MissionUserSerializer, MissionListSerializer
 
 
 class MissionViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
+        context = {'request': request}
         queryset = Mission.objects.all()
         mission = get_object_or_404(queryset, pk=pk)
-        serializer = MissionSerializer(mission)
+        serializer = MissionSerializer(mission, context=context)
         return Response(serializer.data)
 
     @action(detail=True, methods=['POST'])
@@ -42,22 +43,23 @@ class MissionViewSet(viewsets.ViewSet):
         user_mission = get_object_or_404(MissionUser.objects.filter(mission_id=pk, user=request.user))
         mission = get_object_or_404(Mission.objects.all(), pk=pk)
 
-        if user_mission.end_timestamp:
-            return Response(status=403, data='The mission is already done')
+        if MissionHelper.is_mission_finished(user_mission):
+            return Response(status=403, data='The mission is already finished')
 
-        if not MissionHelper.is_mission_done(user_mission, mission, request.user) or MissionHelper.is_admin_mission_done(user_mission, mission, request.user):
+        if MissionHelper.is_mission_done(user_mission, mission, request.user):
+
+            current_dt =datetime.datetime.now(datetime.timezone.utc)
+            MissionUser.objects.filter(pk=user_mission.id).update(end_timestamp=current_dt)
+
+            MoneyHelper.set_money(mission.money, request.user)
+            ExperienceHelper.set_experience(mission.experience, request.user)
+
+            return Response(status=status.HTTP_200_OK, data='Mission has been done')
+        else:
             return Response(status=403, data='The mission is not done yet')
-
-        MissionUser.objects.filter(pk=pk).update(end_timestamp=datetime.datetime.now(datetime.timezone.utc))
-
-        MoneyHelper.set_money(mission.money, request.user)
-        ExperienceHelper.set_experience(mission.experience, request.user)
-
-        return Response(status=status.HTTP_200_OK, data='Mission has been done')
 
     def list(self, request):
         queryset = Mission.objects.filter(activity=request.user.activity)
         missions = get_list_or_404(queryset)
-        context = {'request': request}
-        serializer = MissionSerializer(missions, many=True, context=context)
+        serializer = MissionListSerializer(missions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
