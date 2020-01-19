@@ -1,5 +1,3 @@
-import datetime
-
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -22,6 +20,7 @@ class AuthSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     objects_count = serializers.SerializerMethodField(read_only=True)
+    corporation = serializers.StringRelatedField(read_only=True)
 
     def get_objects_count(self, obj):
         return Object.objects.filter(user=obj).count()
