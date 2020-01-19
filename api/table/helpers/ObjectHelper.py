@@ -39,8 +39,9 @@ class ObjectHelper:
                     last_manage_records[0].timestamp + datetime.timedelta(ObjectHelper.OBJECT_MANAGE_THROTTLING)))
         is_object_available = current_dt > (object_item.timestamp + datetime.timedelta(
            ObjectHelper.OBJECT_LOCKED_IN_DAYS))
+        is_can_be_captured = ObjectHelper.can_object_be_captured(object_item, user  )
 
-        return is_object_available and is_can_manage_by_throttling
+        return is_object_available and is_can_manage_by_throttling and not is_can_be_captured
 
     @staticmethod
     def is_own_object(object_item, user):

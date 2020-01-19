@@ -78,10 +78,10 @@ class MissionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class MissionListSerializer(serializers.ModelSerializer):
+class MissionListSerializer(MissionSerializer):
     class Meta:
         model = Mission
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'is_finished')
 
 
 class MissionUserSerializer(serializers.ModelSerializer):
@@ -89,10 +89,7 @@ class MissionUserSerializer(serializers.ModelSerializer):
     until_manage_done_count = serializers.SerializerMethodField(read_only=True)
 
     def get_until_manage_done_count(self, obj):
-        if obj.mission.activity == EActivityStatus.BUSINESS:
-            return MissionHelper.get_manage_done_count(obj, self.context.get('request').user)
-        elif obj.mission.activity == EActivityStatus.ADMIN:
-            return MissionHelper.get_admin_manage_done_count(obj, self.context.get('request').user)
+        return MissionHelper.get_manage_done_count(obj, self.context.get('request').user)
 
     class Meta:
         model = MissionUser

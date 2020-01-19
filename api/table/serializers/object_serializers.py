@@ -23,7 +23,11 @@ class ObjectSerializer(serializers.ModelSerializer):
     until_capture_count = serializers.SerializerMethodField(read_only=True)
 
     def get_until_capture_count(self, obj):
-        return ObjectHelper.OBJECT_CAPTURE_STREAK_COUNT - ObjectsUserManage.objects.filter(timestamp__gt=obj.timestamp, user=self.context.get('request').user).count()
+        capture_count = ObjectHelper.OBJECT_CAPTURE_STREAK_COUNT - ObjectsUserManage.objects.filter(timestamp__gt=obj.timestamp, user=self.context.get('request').user).count()
+
+        if capture_count > 0:
+            return capture_count
+        return 0
 
     def get_can_be_captured(self, obj):
         return ObjectHelper.can_object_be_captured(obj, self.context.get('request').user)

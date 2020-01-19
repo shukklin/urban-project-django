@@ -8,8 +8,8 @@ from rest_framework.response import Response
 from api.table.helpers.ExperienceHelper import ExperienceHelper
 from api.table.helpers.MissionHelper import MissionHelper
 from api.table.helpers.MoneyHelper import MoneyHelper
-from ...models import Mission, MissionUser
 from api.table.serializers.models_serializers import MissionSerializer, MissionUserSerializer, MissionListSerializer
+from ...models import Mission, MissionUser
 
 
 class MissionViewSet(viewsets.ViewSet):
@@ -59,7 +59,8 @@ class MissionViewSet(viewsets.ViewSet):
             return Response(status=403, data='The mission is not done yet')
 
     def list(self, request):
+        context = {'request': request}
         queryset = Mission.objects.filter(activity=request.user.activity)
         missions = get_list_or_404(queryset)
-        serializer = MissionListSerializer(missions, many=True)
+        serializer = MissionListSerializer(missions, many=True, context=context)
         return Response(serializer.data, status=status.HTTP_200_OK)
