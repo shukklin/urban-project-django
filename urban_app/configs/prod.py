@@ -2,7 +2,7 @@ DEFAULT_FROM_EMAIL = 'uclab.urbanbasis@gmail.com'
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['eco.urbanbasis.com']
+ALLOWED_HOSTS = ['monopoly.urbanbasis.com']
 
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
@@ -19,15 +19,15 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'file': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': 'debug.log',
+            'filename': 'errors.log',
         },
     },
     'loggers': {
         'django': {
             'handlers': ['file'],
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'propagate': True,
         },
     },
