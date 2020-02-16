@@ -6,3 +6,4 @@ public/images/
 urban_app/keys/
 **/migrations
 env/
+*.log
