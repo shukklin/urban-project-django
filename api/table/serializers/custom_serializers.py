@@ -10,7 +10,7 @@ class LocationSerializer(ObjectSerializer):
 
     class Meta:
         model = Object
-        fields = ['id', 'location', 'is_own_object']
+        fields = ['id', 'location', 'is_own_object', 'is_activated']
 
 class ChangeUserCorporationSerializer(serializers.ModelSerializer):
     class Meta:

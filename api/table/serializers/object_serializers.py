@@ -61,7 +61,7 @@ class ObjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Object
         fields = '__all__'
-        read_only_fields = ('id', 'user', 'isActivated')
+        read_only_fields = ('id', 'user', 'is_activated')
 
     def create(self, validated_data):
         return Object.objects.create(**validated_data)
@@ -71,4 +71,4 @@ class ObjectUpdateSerializer(ObjectSerializer):
     class Meta:
         model = Object
         fields = '__all__'
-        read_only_fields = ('location', 'user', 'timestamp', 'isActivated')
+        read_only_fields = ('location', 'user', 'timestamp', 'is_activated')
