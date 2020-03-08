@@ -3,12 +3,14 @@ import math
 
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import Distance
+from django.db.models import F, Case, When, Q
 from django.shortcuts import get_object_or_404, get_list_or_404
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from api.models import Object, ObjectPhoto
+from api.table.enums.EActivityStatus import EActivityStatus
 from api.table.enums.EAppConfig import EAppConfig
 from api.table.helpers.ExperienceHelper import ExperienceHelper, EExperienceType
 from api.table.helpers.MoneyHelper import MoneyHelper, EMoneyType
@@ -28,8 +30,13 @@ class ObjectViewSet(viewsets.ViewSet):
         else:
             return Response(status=400, data='Input parameters is not correct')
 
-        queryset = Object.objects.filter(is_deleted__exact=False,
-                                         location__distance_lt=(Point(lng, lat), Distance(km=radius)))
+        if request.user.activity == EActivityStatus.ADMIN:
+            queryset = Object.objects.filter(is_deleted__exact=False,
+                                             location__distance_lt=(Point(lng, lat), Distance(km=radius)))
+        else:
+            queryset = Object.objects.filter(is_deleted__exact=False, is_activated__exact=Case(When(user__exact=request.user, then=False),
+                                                                                               default=True),
+                                             location__distance_lt=(Point(lng, lat), Distance(km=radius)))
 
         context = {'request': request}
         serializer = LocationSerializer(queryset, many=True, context=context)
