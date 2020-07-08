@@ -3,7 +3,6 @@ venv
 **/__pycache__
 public/images/
 .vscode
-urban_app/keys/
 **/migrations
 env/
 *.log
